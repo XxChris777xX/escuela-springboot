@@ -23,8 +23,8 @@ public class ProfesorController
     @GetMapping
     public ResponseEntity<List<Profesor>> findAll()
     {
-        List<Profesor> profesores = profesorService.findAll();
-        return ResponseEntity.ok(profesores);
+        List<Profesor> lista = profesorService.findAll();
+        return ResponseEntity.ok(lista);
     }
 
     @Operation(summary = "Consultar un profesor por ID", description = "Obtiene un profesor por su ID")
@@ -47,15 +47,15 @@ public class ProfesorController
                 .body(nuevoProfesor);
     }
 
-    @Operation(summary = "Actualizar un profesor existente", description = "Actualiza los datos de un profesor existente en el sistema")
+    @Operation(summary = "Actualizar un profesor existente", description = "Actualiza los datos de un profesor existente")
     @PutMapping("/{id}")
     public ResponseEntity<Profesor> update(@PathVariable Long id, @RequestBody Profesor profesor)
     {
         return profesorService.findById(id)
-                .map(profesorExistente -> {
-                    profesorExistente.setNombre(profesor.getNombre());
-                    profesorExistente.setEspecialidad(profesor.getEspecialidad());
-                    Profesor actualizado = profesorService.save(profesorExistente);
+                .map(existente -> {
+                    existente.setNombre(profesor.getNombre());
+                    existente.setEspecialidad(profesor.getEspecialidad());
+                    Profesor actualizado = profesorService.save(existente);
                     return ResponseEntity.ok(actualizado);
                 })
                 .orElseGet(() -> ResponseEntity.notFound().build());

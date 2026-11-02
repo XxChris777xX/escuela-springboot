@@ -1,0 +1,157 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>CRUD de Alumnos</title>
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+</head>
+<body class="bg-light">
+<div class="container mt-4">
+  <a href="index.html" class="btn btn-link mb-3">&larr; Volver al Menú</a>
+
+  <div class="row">
+    <!-- Formulario para Crear / Editar -->
+    <div class="col-md-4 mb-4">
+      <div class="card shadow p-4">
+        <h4 id="form-title" class="mb-3 text-primary">Agregar Alumno</h4>
+        <form id="alumno-form">
+          <input type="hidden" id="alumno-id">
+          <div class="mb-3">
+            <label for="nombre" class="form-label">Nombre</label>
+            <input type="text" class="form-control" id="nombre" required>
+          </div>
+          <div class="mb-3">
+            <label for="edad" class="form-label">Edad</label>
+            <input type="number" class="form-control" id="edad" required>
+          </div>
+          <div class="mb-3">
+            <label for="promedio" class="form-label">Promedio</label>
+            <input type="number" step="0.01" class="form-control" id="promedio" required>
+          </div>
+          <button type="submit" class="btn btn-success w-100" id="btn-guardar">Guardar</button>
+          <button type="button" class="btn btn-secondary w-100 mt-2 d-none" id="btn-cancelar" onclick="limpiarFormulario()">Cancelar</button>
+        </form>
+      </div>
+    </div>
+
+    <!-- Tabla de Listado -->
+    <div class="col-md-8">
+      <div class="card shadow p-4">
+        <h2 class="mb-4 text-primary">👥 Listado de Alumnos</h2>
+        <div class="table-responsive">
+          <table class="table table-striped table-hover align-middle">
+            <thead class="table-dark">
+            <tr>
+              <th>ID</th>
+              <th>Nombre</th>
+              <th>Edad</th>
+              <th>Promedio</th>
+              <th>Acciones</th>
+            </tr>
+            </thead>
+            <tbody id="tabla-alumnos">
+            <!-- Datos cargados por JS -->
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+  const API_URL = '/api/alumnos';
+
+  // Cargar registros al iniciar
+  document.addEventListener("DOMContentLoaded", cargarAlumnos);
+
+  function cargarAlumnos() {
+    fetch(API_URL)
+            .then(res => res.json())
+            .then(data => {
+              const tbody = document.getElementById('tabla-alumnos');
+              tbody.innerHTML = '';
+              data.forEach(a => {
+                tbody.innerHTML += `<tr>
+                            <td>${a.id}</td>
+                            <td>${a.nombre}</td>
+                            <td>${a.edad}</td>
+                            <td><span class="badge bg-success">${a.promedio}</span></td>
+                            <td>
+                                <button class="btn btn-warning btn-sm me-1" onclick="prepararActualizar(${a.id}, '${a.nombre}', ${a.edad}, ${a.promedio})">Editar</button>
+                                <button class="btn btn-danger btn-sm" onclick="eliminarAlumno(${a.id})">Eliminar</button>
+                            </td>
+                        </tr>`;
+              });
+            })
+            .catch(err => console.error('Error al cargar:', err));
+  }
+
+  // Guardar o Actualizar
+  document.getElementById('alumno-form').addEventListener('submit', function(e) {
+    e.preventDefault();
+    const id = document.getElementById('alumno-id').value;
+    const alumno = {
+      nombre: document.getElementById('nombre').value,
+      edad: parseInt(document.getElementById('edad').value),
+      promedio: parseFloat(document.getElementById('promedio').value)
+    };
+
+    const method = id ? 'PUT' : 'POST';
+    const url = id ? `${API_URL}/${id}` : API_URL;
+
+    fetch(url, {
+      method: method,
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(alumno)
+    })
+            .then(res => {
+              if (res.ok) {
+                limpiarFormulario();
+                cargarAlumnos();
+              } else {
+                alert('Error al guardar el registro');
+              }
+            })
+            .catch(err => console.error('Error:', err));
+  });
+
+  // Preparar formulario para Editar
+  function prepararActualizar(id, nombre, edad, promedio) {
+    document.getElementById('alumno-id').value = id;
+    document.getElementById('nombre').value = nombre;
+    document.getElementById('edad').value = edad;
+    document.getElementById('promedio').value = promedio;
+    document.getElementById('form-title').textContent = 'Editar Alumno';
+    document.getElementById('btn-guardar').textContent = 'Actualizar';
+    document.getElementById('btn-cancelar').classList.remove('d-none');
+  }
+
+  // Eliminar Alumno
+  function eliminarAlumno(id) {
+    if (confirm('¿Estás seguro de eliminar este alumno?')) {
+      fetch(`${API_URL}/${id}`, { method: 'DELETE' })
+              .then(res => {
+                if (res.status === 204 || res.ok) {
+                  cargarAlumnos();
+                } else {
+                  alert('No se pudo eliminar');
+                }
+              })
+              .catch(err => console.error('Error:', err));
+    }
+  }
+
+  // Limpiar formulario
+  function limpiarFormulario() {
+    document.getElementById('alumno-id').value = '';
+    document.getElementById('alumno-form').reset();
+    document.getElementById('form-title').textContent = 'Agregar Alumno';
+    document.getElementById('btn-guardar').textContent = 'Guardar';
+    document.getElementById('btn-cancelar').classList.add('d-none');
+  }
+</script>
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>

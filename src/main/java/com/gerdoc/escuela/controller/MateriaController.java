@@ -23,8 +23,8 @@ public class MateriaController
     @GetMapping
     public ResponseEntity<List<Materia>> findAll()
     {
-        List<Materia> materias = materiaService.findAll();
-        return ResponseEntity.ok(materias);
+        List<Materia> lista = materiaService.findAll();
+        return ResponseEntity.ok(lista);
     }
 
     @Operation(summary = "Consultar una materia por ID", description = "Obtiene una materia por su ID")
@@ -47,15 +47,14 @@ public class MateriaController
                 .body(nuevaMateria);
     }
 
-    @Operation(summary = "Actualizar una materia existente", description = "Actualiza los datos de una materia existente en el sistema")
+    @Operation(summary = "Actualizar una materia existente", description = "Actualiza los datos de una materia existente")
     @PutMapping("/{id}")
     public ResponseEntity<Materia> update(@PathVariable Long id, @RequestBody Materia materia)
     {
         return materiaService.findById(id)
-                .map(materiaExistente -> {
-                    materiaExistente.setNombre(materia.getNombre());
-                    materiaExistente.setCreditos(materia.getCreditos());
-                    Materia actualizado = materiaService.save(materiaExistente);
+                .map(existente -> {
+                    existente.setNombre(materia.getNombre());
+                    Materia actualizado = materiaService.save(existente);
                     return ResponseEntity.ok(actualizado);
                 })
                 .orElseGet(() -> ResponseEntity.notFound().build());
